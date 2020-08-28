@@ -600,7 +600,7 @@ interface YAM {
 
 contract LPTokenWrapper {
     using SafeMath for uint256;
-    // using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20;
 
     IERC20 public weth = IERC20(0xAc239d0E2094B046bB8EDcDF79De708D806d71cE);
 
@@ -618,13 +618,13 @@ contract LPTokenWrapper {
     function stake(uint256 amount) public {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        weth.transferFrom(msg.sender, address(this), amount);
+        weth.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        weth.transfer(msg.sender, amount);
+        weth.safeTransfer(msg.sender, amount);
     }
 }
 
