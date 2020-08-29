@@ -592,12 +592,6 @@ contract IRewardDistributionRecipient is Ownable {
 pragma solidity ^0.5.0;
 
 
-interface YAM {
-    function yamsScalingFactor() external returns (uint256);
-}
-
-
-
 contract LPTokenWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -708,10 +702,8 @@ contract YAMETHPool is LPTokenWrapper, IRewardDistributionRecipient {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            uint256 scalingFactor = YAM(address(yam)).yamsScalingFactor();
-            uint256 trueReward = reward.mul(scalingFactor).div(10**18);
-            yam.safeTransfer(msg.sender, trueReward);
-            emit RewardPaid(msg.sender, trueReward);
+            yam.safeTransfer(msg.sender, reward);
+            emit RewardPaid(msg.sender, reward);
         }
     }
 
