@@ -599,6 +599,7 @@ contract LPTokenWrapper {
     IERC20 public weth = IERC20(0xAc239d0E2094B046bB8EDcDF79De708D806d71cE);
 
     uint256 private _totalSupply;
+    uint256 private _sqrtTotalSupply;
     mapping(address => uint256) private _balances;
 
     function totalSupply() public view returns (uint256) {
@@ -611,14 +612,40 @@ contract LPTokenWrapper {
 
     function stake(uint256 amount) public {
         _totalSupply = _totalSupply.add(amount);
+        uint256 _prevBalance = _balances[msg.sender];
         _balances[msg.sender] = _balances[msg.sender].add(amount);
+        _sqrtTotalSupply = _sqrtTotalSupply.sub(sqrtBalance(_prevBalance)).add(sqrtBalance(_balances[msg.sender]));
         weth.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) public {
         _totalSupply = _totalSupply.sub(amount);
+        uint256 _prevBalance = _balances[msg.sender];
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        _sqrtTotalSupply = _sqrtTotalSupply.sub(sqrtBalance(_prevBalance)).add(sqrtBalance(_balances[msg.sender]));
         weth.safeTransfer(msg.sender, amount);
+    }
+    function sqrtTotalSupply() public view returns (uint256) {
+        return _sqrtTotalSupply;
+    }
+
+    function sqrtBalance(uint256 balance) public pure returns (uint256) {
+        if (balance < 1e18) {
+            return balance;
+        } else {
+            uint256 trueBalance = balance.div(1e18);
+            uint256 balanceSqrt = safeSqrt(trueBalance);
+            return balanceSqrt.mul(1e18);
+        }
+    }
+
+    function safeSqrt(uint256 x) internal pure returns (uint256 y) {
+        uint256 z = x.add(1).div(2);
+        y = x;
+        while (z < y) {
+            y = z;
+            z = x.div(z).add(z).div(2);
+        }
     }
 }
 
@@ -659,7 +686,7 @@ contract YAMETHPool is LPTokenWrapper, IRewardDistributionRecipient {
     }
 
     function rewardPerToken() public view returns (uint256) {
-        if (totalSupply() == 0) {
+        if (sqrtTotalSupply() == 0) {
             return rewardPerTokenStored;
         }
         return
@@ -668,13 +695,13 @@ contract YAMETHPool is LPTokenWrapper, IRewardDistributionRecipient {
                     .sub(lastUpdateTime)
                     .mul(rewardRate)
                     .mul(1e18)
-                    .div(totalSupply())
+                    .div(sqrtTotalSupply())
             );
     }
 
     function earned(address account) public view returns (uint256) {
         return
-            balanceOf(account)
+            sqrtBalance(balanceOf(account))
                 .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
                 .div(1e18)
                 .add(rewards[account]);
