@@ -12,15 +12,16 @@
     "migrate-reset": "truffle migrate  --reset --network rinkeby",
     "build": "yarn compile",
     "test": "truffle test ./test/TimeMachine.js --network rinkeby",
-    "flatten": "truffle-flattener ",
     "flatten-fanpiao": "truffle-flattener ./contracts/FanPiao.sol | pbcopy",
     "migrate-local": "truffle migrate --network development",
-    "test-local": "truffle test ./test/ECny.js --network development"
+    "test-local": "truffle test ./test/QVVoting.js --network development",
+    "flatten": "truffle-flattener ./contracts/YAM.sol | pbcopy"
   },
   "author": "Frank Wei (https://github.com/frankwei98)",
   "license": "ISC",
   "dependencies": {
     "@openzeppelin/contracts": "^2.4.0",
+    "truffle-assertions": "^0.9.2",
     "truffle-flattener": "^1.4.2",
     "truffle-hdwallet-provider": "^1.0.17",
     "web3": "^1.2.4"
